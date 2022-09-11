@@ -6,6 +6,7 @@ package it.polito.tdp.yelp;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.ResourceBundle;
 
@@ -47,15 +48,39 @@ public class FXMLController {
     void doRiempiLocali(ActionEvent event) {
     	this.cmbLocale.getItems().clear();
     	String citta = this.cmbCitta.getValue();
-    	if(citta != null) {
-    		//TODO popolare la tendina dei locali per la città selezionata
-    		
+    	if (citta != null) {
+    		List<Business> locali = this.model.getAllBusinessWithCitta(citta);
+    		Collections.sort(locali);
+    		this.cmbLocale.getItems().addAll(locali);
     	}
     }
 
     @FXML
     void doCreaGrafo(ActionEvent event) {
+    	txtResult.clear();
     	
+    	String citta = this.cmbCitta.getValue();
+    	if (citta == null) {
+    		txtResult.setText("Per favore selezionare una città!\n");
+    		return;
+    	}
+    	
+    	Business locale = cmbLocale.getValue();
+    	if (locale == null) {
+    		txtResult.setText("Per favore selezionare un locale!\n");
+    		return;
+    	}
+    	
+    	this.model.creaGrafo(locale);
+    	txtResult.setText("Grafo creato!\n");
+    	txtResult.appendText("# Vertici : " + this.model.getNumVertici() +"\n");
+    	txtResult.appendText("# Archi : " + this.model.getNumArchi() +"\n");
+    	
+    	List<Review> recensioni = this.model.getRecensioniConNumeroArchiUscentiMassimo();
+    	txtResult.appendText("\nRecensioni per cui il numero di archi uscenti è massimo: \n");
+    	for (Review r : recensioni) {
+    		txtResult.appendText(r.getReviewId() + ", ARCHI USCENTI: " + this.model.getNumeroArchiUscenti(r));
+    	}
     }
 
     @FXML
@@ -75,5 +100,10 @@ public class FXMLController {
     
     public void setModel(Model model) {
     	this.model = model;
+    	
+    	List<String> citta = this.model.getAllCitta();
+    	Collections.sort(citta);
+    	cmbCitta.getItems().addAll(citta);
     }
+    
 }
